@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mahjong Scoring Page</title>
+  <style>
+    :root{
+      --bg:#f5f6f8;
+      --card:#ffffff;
+      --line:#d8dde6;
+      --text:#1f2937;
+      --muted:#7b8494;
+      --blue:#2563eb;
+      --blue-soft:#eef4ff;
+      --danger:#dc2626;
+      --warn:#b45309;
+      --shadow:0 8px 24px rgba(0,0,0,.05);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .page{
+      max-width:1420px;
+      margin:22px auto 40px;
+      padding:0 16px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .topbar,.section-head,.score-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1,h2,h3,h4,p{margin:0}
+    h1{font-size:30px}
+    h2{font-size:22px}
+    h3{font-size:16px}
+    .toolbar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:var(--blue);
+      color:#fff;
+      border-color:var(--blue);
+    }
+    .btn:hover{opacity:.95}
+    .subtle{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    /* Tile selection */
+    .tile-section{
+      display:grid;
+      gap:18px;
+    }
+    .tile-group{
+      display:grid;
+      gap:10px;
+    }
+    .tile-grid{
+      display:grid;
+      grid-template-columns:repeat(9,minmax(68px,1fr));
+      gap:10px;
+    }
+    .tile-grid.honor{
+      grid-template-columns:repeat(7,minmax(68px,1fr));
+    }
+    .tile-btn{
+      position:relative;
+      min-height:96px;
+      border:1px solid #c4ccd8;
+      border-radius:12px;
+      background:linear-gradient(180deg,#ffffff 0%,#f7f7f5 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.85),
+        0 2px 4px rgba(0,0,0,.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.12s ease;
+    }
+    .tile-btn:hover{
+      transform:translateY(-1px);
+      border-color:#9aa8bd;
+    }
+    .tile-btn.active{
+      outline:2px solid #cfe0ff;
+      border-color:#84aefc;
+      background:linear-gradient(180deg,#ffffff 0%,#eef4ff 100%);
+    }
+    .tile-count{
+      position:absolute;
+      top:6px;
+      right:8px;
+      font-size:9px;
+      font-weight:700;
+      color:#4b5563;
+      line-height:1;
+    }
+
+    /* tile face */
+    .mahjong-face{
+      width:54px;
+      height:76px;
+      border:1px solid #cfd5de;
+      border-radius:8px;
+      background:linear-gradient(180deg,#fff 0%,#fbfbf9 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+    }
+    .mini .mahjong-face{
+      width:48px;
+      height:68px;
+    }
+
+    .face-crack{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      line-height:1;
+    }
+    .face-crack .num{
+      color:#c62828;
+      font-size:20px;
+      font-weight:700;
+    }
+    .face-crack .wan{
+      color:#111827;
+      font-size:18px;
+      font-weight:700;
+    }
+    .mini .face-crack .num{font-size:17px}
+    .mini .face-crack .wan{font-size:15px}
+
+    .face-honor{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      line-height:1;
+    }
+    .face-honor .zh{
+      font-size:28px;
+      font-weight:700;
+    }
+    .face-honor .en{
+      font-size:9px;
+      color:#6b7280;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .mini .face-honor .zh{font-size:23px}
+
+    .face-dot,.face-bam{
+      width:100%;
+      height:100%;
+      padding:7px 6px;
+      display:grid;
+      place-items:center;
+    }
+    .symbol-grid{
+      width:100%;
+      height:100%;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:2px;
+      justify-items:center;
+      align-items:center;
+    }
+    .dot{
+      width:11px;
+      height:11px;
+      border-radius:50%;
+      background:radial-gradient(circle at 35% 35%, #60a5fa 0%, #2563eb 45%, #1d4ed8 70%, #153eaa 100%);
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .mini .dot{
+      width:10px;
+      height:10px;
+    }
+
+    .bam{
+      width:6px;
+      height:18px;
+      border-radius:6px;
+      background:linear-gradient(180deg,#2f9e44,#1b5e20);
+      position:relative;
+    }
+    .bam::before,.bam::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      width:10px;
+      height:3px;
+      border-radius:3px;
+      background:#34d399;
+    }
+    .bam::before{top:2px}
+    .bam::after{bottom:2px}
+    .mini .bam{
+      width:5px;
+      height:16px;
+    }
+    .mini .bam::before,.mini .bam::after{
+      width:9px;
+    }
+
+    /* Winning Hand */
+    .groups-row{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(220px,1fr));
+      gap:12px;
+      overflow-x:auto;
+      padding-bottom:4px;
+    }
+    .group-card{
+      border:1px solid var(--line);
+      background:#fcfcfd;
+      border-radius:14px;
+      padding:12px;
+      min-width:220px;
+      display:grid;
+      gap:10px;
+    }
+    .group-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .slot{
+      min-height:108px;
+      border:1px dashed #cbd5e1;
+      border-radius:12px;
+      background:#fff;
+      padding:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:flex-start;
+      align-content:flex-start;
+    }
+    .slot.drag-over{
+      background:var(--blue-soft);
+      border-color:#7aa7ff;
+    }
+    .tile-wrap{
+      position:relative;
+      cursor:grab;
+    }
+    .tile-wrap.dragging{
+      opacity:.45;
+    }
+    .mini-remove{
+      position:absolute;
+      top:-6px;
+      right:-6px;
+      width:20px;
+      height:20px;
+      border:none;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.18);
+      color:var(--danger);
+      font-weight:700;
+      cursor:pointer;
+      z-index:2;
+    }
+    .group-controls{
+      display:grid;
+      gap:8px;
+      font-size:14px;
+    }
+    .line{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    select{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:14px;
+      color:var(--text);
+    }
+
+    /* manual */
+    .manual-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(260px,1fr));
+      gap:14px;
+    }
+    .manual-box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fcfcff;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+    .check-list{
+      display:grid;
+      gap:10px;
+      font-size:14px;
+    }
+    .desc{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+      margin-left:24px;
+      margin-top:-2px;
+    }
+    .warning{
+      display:none;
+      margin-top:8px;
+      padding:10px 12px;
+      border:1px solid #fdba74;
+      background:#fff7ed;
+      color:#9a3412;
+      border-radius:12px;
+      font-size:14px;
+    }
+    .warning.show{display:block}
+
+    /* score */
+    .total{
+      font-size:34px;
+      font-weight:800;
+      color:var(--blue);
+    }
+    .score-list{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+    .score-item{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      padding:12px;
+      display:grid;
+      gap:5px;
+    }
+    .score-main{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-weight:700;
+    }
+    .empty{
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:14px;
+      background:#fff;
+      color:var(--muted);
+    }
+
+    @media (max-width:1200px){
+      .tile-grid{grid-template-columns:repeat(6,minmax(68px,1fr))}
+      .tile-grid.honor{grid-template-columns:repeat(4,minmax(68px,1fr))}
+      .manual-grid{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:860px){
+      .tile-grid{grid-template-columns:repeat(4,minmax(68px,1fr))}
+      .tile-grid.honor{grid-template-columns:repeat(4,minmax(68px,1fr))}
+      .manual-grid{grid-template-columns:1fr}
+      .groups-row{grid-template-columns:repeat(5,minmax(240px,1fr))}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <h1>Mahjong Scoring Page</h1>
+      <div class="toolbar">
+        <button class="btn" id="clearAllBtn">Clear Hand</button>
+        <button class="btn primary" id="recalcBtn">Recalculate Score</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head">
+        <h2>Tile Selection</h2>
+      </div>
+
+      <div class="tile-section">
+        <div class="tile-group">
+          <h3>Cracks</h3>
+          <div class="tile-grid" id="cracksGrid"></div>
+        </div>
+
+        <div class="tile-group">
+          <h3>Dots</h3>
+          <div class="tile-grid" id="dotsGrid"></div>
+        </div>
+
+        <div class="tile-group">
+          <h3>Bams</h3>
+          <div class="tile-grid" id="bamsGrid"></div>
+        </div>
+
+        <div class="tile-group">
+          <h3>Honor</h3>
+          <div class="tile-grid honor" id="honorGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head">
+        <h2>Winning Hand</h2>
+      </div>
+      <div class="groups-row" id="groupsRow"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-head">
+        <h2>Manual Scoring Supplement</h2>
+      </div>
+
+      <div class="warning" id="specialWarning">
+        Special hand mode is active. Normal group-based automatic scoring is disabled.
+      </div>
+
+      <div class="manual-grid">
+        <div class="manual-box">
+          <h3>Winning Method</h3>
+          <div class="check-list">
+            <div><label class="line"><input type="checkbox" id="manualSelfPick"> <span>Self-Pick</span></label></div>
+            <div><label class="line"><input type="checkbox" id="manualOnlyOne"> <span>Can Only Win with One</span></label></div>
+            <div><label class="line"><input type="checkbox" id="manualFlowerWall"> <span>Win from the Flower Wall</span></label></div>
+            <div><label class="line"><input type="checkbox" id="manualStolenKong"> <span>Stolen Kong</span></label></div>
+            <div><label class="line"><input type="checkbox" id="manualLastDiscard"> <span>Win from the Last Discard</span></label></div>
+            <div><label class="line"><input type="checkbox" id="manualLastWallTile"> <span>Win from the Last Wall Tile</span></label></div>
+          </div>
+        </div>
+
+        <div class="manual-box">
+          <h3>Special / Event</h3>
+          <div class="check-list">
+            <div>
+              <label class="line"><input type="checkbox" id="manual2KongMahjong"> <span>2 Kong Mahjong</span></label>
+              <div class="desc">Winning after 2 consecutive Kongs</div>
+            </div>
+            <div>
+              <label class="line"><input type="checkbox" id="manualProdigy"> <span>Prodigy Hand</span></label>
+              <div class="desc">Waiting on winning tile within the first 4 discards</div>
+            </div>
+            <div>
+              <label class="line"><input type="checkbox" id="manualEarthly"> <span>Earthly Hand</span></label>
+              <div class="desc">Mahjong on the first discard</div>
+            </div>
+            <div>
+              <label class="line"><input type="checkbox" id="manualHeavenly"> <span>Heavenly Hand</span></label>
+              <div class="desc">Self-draw a mahjong on your first turn</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="manual-box">
+          <h3>Special Hand Pattern</h3>
+          <div class="check-list">
+            <div>
+              <label class="line">
+                <span style="min-width:70px;">Flower</span>
+                <select id="flowerCount"></select>
+              </label>
+            </div>
+
+            <div>
+              <label class="line">
+                <span style="min-width:70px;">Dealer</span>
+                <select id="dealerRound"></select>
+              </label>
+            </div>
+
+            <div>
+              <label class="line">
+                <span style="min-width:70px;">Pattern</span>
+                <select id="specialPattern">
+                  <option value="">None</option>
+                  <option value="allPairs">All Pairs</option>
+                  <option value="thirteenOrphans">Thirteen Orphans</option>
+                  <option value="heavenlyGates">Heavenly Gates</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="desc" id="patternDesc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="score-head">
+        <h2>Scoring Result</h2>
+        <div class="total" id="totalScore">0</div>
+      </div>
+      <div class="score-list" id="scoreList">
+        <div class="empty">No scoring items yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TILE_TYPES = [
+      ...Array.from({ length: 9 }, (_, i) => ({
+        key: `${i + 1}C`, suit: 'C', rank: i + 1, category: 'suit',
+        name: `${i + 1} Cracks`, short: `${i + 1}C`
+      })),
+      ...Array.from({ length: 9 }, (_, i) => ({
+        key: `${i + 1}D`, suit: 'D', rank: i + 1, category: 'suit',
+        name: `${i + 1} Dots`, short: `${i + 1}D`
+      })),
+      ...Array.from({ length: 9 }, (_, i) => ({
+        key: `${i + 1}B`, suit: 'B', rank: i + 1, category: 'suit',
+        name: `${i + 1} Bams`, short: `${i + 1}B`
+      })),
+      { key: 'E', suit: 'H', category: 'honor', honorType: 'wind', name: 'East', short: 'East', zh: '東' },
+      { key: 'S', suit: 'H', category: 'honor', honorType: 'wind', name: 'South', short: 'South', zh: '南' },
+      { key: 'W', suit: 'H', category: 'honor', honorType: 'wind', name: 'West', short: 'West', zh: '西' },
+      { key: 'N', suit: 'H', category: 'honor', honorType: 'wind', name: 'North', short: 'North', zh: '北' },
+      { key: 'Wh', suit: 'H', category: 'honor', honorType: 'dragon', name: 'White Dragon', short: 'White', zh: '白' },
+      { key: 'G', suit: 'H', category: 'honor', honorType: 'dragon', name: 'Green Dragon', short: 'Green', zh: '發' },
+      { key: 'R', suit: 'H', category: 'honor', honorType: 'dragon', name: 'Red Dragon', short: 'Red', zh: '中' }
+    ];
+
+    const TILE_MAP = Object.fromEntries(TILE_TYPES.map(t => [t.key, t]));
+
+    const DESC_MAP = {
+      'Semi-Pure Hand': 'All one suit, hand contains Dragons/Winds',
+      "Semi Mixed 1’s or 9’s": 'All suit sets contain a 1 or 9, with Dragons/Winds allowed. Pair may be honors or 1’s/9’s',
+      'Pure Hand': 'All one suit with NO Dragons/Winds',
+      "Pure Mixed 1’s or 9’s": 'All suit sets contain a 1 or 9 with NO Dragons/Winds. Pair must be 1’s or 9’s',
+      '2 Kong Mahjong': 'Winning after 2 consecutive Kongs',
+      "Semi 1’s or 9’s Pongs": 'All sets are pongs of 1’s or 9’s, with Dragons/Winds',
+      'Prodigy Hand': 'Waiting on winning tile within the first 4 discards',
+      'Hidden Treasure': 'Four hidden pongs AND self-drawn',
+      "Pure 1’s or 9’s Pongs": 'All sets are pongs of 1’s or 9’s with NO Dragons/Winds',
+      'Thirteen Orphans': '1 and 9 of every suit, one of each wind, one of each Dragon, and a pair of any of the above',
+      'Heavenly Gates': 'Three 1’s, three 9’s and a single 2, 3, 4, 5, 6, 7 and 8, plus a matching tile of any of the above',
+      'Earthly Hand': 'Mahjong on the first discard',
+      'Heavenly Hand': 'Self-draw a mahjong on your first turn'
+    };
+
+    const DEFAULT_STATE = () => ({
+      counts: Object.fromEntries(TILE_TYPES.map(t => [t.key, 0])),
+      groups: [
+        { id: 0, label: 'Group 1', type: 'main', size: 3, tiles: [], inHand: true, concealedKong: false },
+        { id: 1, label: 'Group 2', type: 'main', size: 3, tiles: [], inHand: true, concealedKong: false },
+        { id: 2, label: 'Group 3', type: 'main', size: 3, tiles: [], inHand: true, concealedKong: false },
+        { id: 3, label: 'Group 4', type: 'main', size: 3, tiles: [], inHand: true, concealedKong: false },
+        { id: 4, label: 'Pair', type: 'pair', size: 2, tiles: [], inHand: true, concealedKong: false }
+      ],
+      manual: {
+        selfPick: false,
+        onlyOne: false,
+        flowerWall: false,
+        stolenKong: false,
+        lastDiscard: false,
+        lastWallTile: false,
+        twoKongMahjong: false,
+        prodigy: false,
+        earthly: false,
+        heavenly: false,
+        specialPattern: '',
+        dealerRound: 0,
+        flowerCount: 0
+      }
+    });
+
+    let state = DEFAULT_STATE();
+    let dragState = null;
+
+    function addScore(list, name, points, reason, source='auto'){
+      list.push({ name, points, reason, source });
+    }
+
+    function isSuit(tile){ return tile && tile.category === 'suit'; }
+    function isHonor(tile){ return tile && tile.category === 'honor'; }
+    function allSame(arr){ return arr.length > 0 && arr.every(x => x === arr[0]); }
+    function suitName(s){ return s === 'C' ? 'Cracks' : s === 'D' ? 'Dots' : 'Bams'; }
+
+    function initSelects(){
+      const flower = document.getElementById('flowerCount');
+      const dealer = document.getElementById('dealerRound');
+      flower.innerHTML = '';
+      dealer.innerHTML = '';
+      for(let i=0;i<=8;i++){
+        const op = document.createElement('option');
+        op.value = i;
+        op.textContent = i;
+        flower.appendChild(op);
+      }
+      for(let i=0;i<=10;i++){
+        const op = document.createElement('option');
+        op.value = i;
+        op.textContent = i;
+        dealer.appendChild(op);
+      }
+    }
+
+    function setManualUIFromState(){
+      document.getElementById('manualSelfPick').checked = state.manual.selfPick;
+      document.getElementById('manualOnlyOne').checked = state.manual.onlyOne;
+      document.getElementById('manualFlowerWall').checked = state.manual.flowerWall;
+      document.getElementById('manualStolenKong').checked = state.manual.stolenKong;
+      document.getElementById('manualLastDiscard').checked = state.manual.lastDiscard;
+      document.getElementById('manualLastWallTile').checked = state.manual.lastWallTile;
+      document.getElementById('manual2KongMahjong').checked = state.manual.twoKongMahjong;
+      document.getElementById('manualProdigy').checked = state.manual.prodigy;
+      document.getElementById('manualEarthly').checked = state.manual.earthly;
+      document.getElementById('manualHeavenly').checked = state.manual.heavenly;
+      document.getElementById('specialPattern').value = state.manual.specialPattern;
+      document.getElementById('dealerRound').value = String(state.manual.dealerRound);
+      document.getElementById('flowerCount').value = String(state.manual.flowerCount);
+    }
+
+    function syncManualFromUI(){
+      state.manual.selfPick = document.getElementById('manualSelfPick').checked;
+      state.manual.onlyOne = document.getElementById('manualOnlyOne').checked;
+      state.manual.flowerWall = document.getElementById('manualFlowerWall').checked;
+      state.manual.stolenKong = document.getElementById('manualStolenKong').checked;
+      state.manual.lastDiscard = document.getElementById('manualLastDiscard').checked;
+      state.manual.lastWallTile = document.getElementById('manualLastWallTile').checked;
+      state.manual.twoKongMahjong = document.getElementById('manual2KongMahjong').checked;
+      state.manual.prodigy = document.getElementById('manualProdigy').checked;
+      state.manual.earthly = document.getElementById('manualEarthly').checked;
+      state.manual.heavenly = document.getElementById('manualHeavenly').checked;
+      state.manual.specialPattern = document.getElementById('specialPattern').value;
+      state.manual.dealerRound = Number(document.getElementById('dealerRound').value || 0);
+      state.manual.flowerCount = Number(document.getElementById('flowerCount').value || 0);
+    }
+
+    function updatePatternDesc(){
+      const v = document.getElementById('specialPattern').value;
+      const el = document.getElementById('patternDesc');
+      if(v === 'thirteenOrphans'){
+        el.textContent = '1 and 9 of every suit, one of each wind, one of each Dragon, and a pair of any of the above';
+      } else if(v === 'heavenlyGates'){
+        el.textContent = 'Three 1’s, three 9’s and a single 2, 3, 4, 5, 6, 7 and 8, plus a matching tile of any of the above';
+      } else {
+        el.textContent = '';
+      }
+    }
+
+    function recalcCountsFromGroups(){
+      state.counts = Object.fromEntries(TILE_TYPES.map(t => [t.key, 0]));
+      state.groups.forEach(g => g.tiles.forEach(k => state.counts[k]++));
+    }
+
+    function firstAvailableGroup(){
+      for(const g of state.groups){
+        if(g.tiles.length < g.size) return g;
+      }
+      return null;
+    }
+
+    function cycleTile(key){
+      const current = state.counts[key];
+      const next = (current + 1) % 5;
+
+      if(next > current){
+        let need = next - current;
+        while(need > 0){
+          const g = firstAvailableGroup();
+          if(!g) break;
+          g.tiles.push(key);
+          need--;
+        }
+      } else if(next < current){
+        let remove = current - next;
+        for(let gi=state.groups.length-1; gi>=0 && remove>0; gi--){
+          const g = state.groups[gi];
+          for(let ti=g.tiles.length-1; ti>=0 && remove>0; ti--){
+            if(g.tiles[ti] === key){
+              g.tiles.splice(ti,1);
+              remove--;
+            }
+          }
+        }
+      }
+
+      recalcCountsFromGroups();
+      renderAll();
+    }
+
+    function removeTile(groupId, tileIndex){
+      const g = state.groups[groupId];
+      g.tiles.splice(tileIndex,1);
+      recalcCountsFromGroups();
+      renderAll();
+    }
+
+    function setGroupSize(groupId, size){
+      const g = state.groups[groupId];
+      if(!g || g.type !== 'main') return;
+      g.size = Number(size);
+
+      if(g.tiles.length > g.size){
+        const overflow = g.tiles.splice(g.size);
+        overflow.forEach(tileKey => {
+          for(const target of state.groups){
+            if(target.id !== g.id && target.tiles.length < target.size){
+              target.tiles.push(tileKey);
+              return;
+            }
+          }
+        });
+      }
+
+      recalcCountsFromGroups();
+      renderAll();
+    }
+
+    function resetAll(){
+      state = DEFAULT_STATE();
+      setManualUIFromState();
+      updatePatternDesc();
+      renderAll();
+    }
+
+    function parseGroup(group){
+      const tiles = group.tiles.map(k => TILE_MAP[k]).filter(Boolean);
+
+      if(group.type === 'pair'){
+        if(tiles.length === 2 && tiles[0].key === tiles[1].key){
+          return { kind:'pair', tiles, key:tiles[0].key };
+        }
+        return { kind:'unknown', tiles };
+      }
+
+      if(tiles.length === 3){
+        if(tiles[0].key === tiles[1].key && tiles[1].key === tiles[2].key){
+          return { kind:'pong', tiles, key:tiles[0].key };
+        }
+        const sorted = tiles.slice().sort((a,b)=>(a.rank||0)-(b.rank||0));
+        if(sorted.every(isSuit) &&
+           sorted[0].suit===sorted[1].suit &&
+           sorted[1].suit===sorted[2].suit &&
+           sorted[0].rank+1===sorted[1].rank &&
+           sorted[1].rank+1===sorted[2].rank){
+          return { kind:'chow', tiles:sorted, suit:sorted[0].suit, start:sorted[0].rank };
+        }
+        return { kind:'unknown', tiles };
+      }
+
+      if(tiles.length === 4){
+        if(tiles[0].key===tiles[1].key && tiles[1].key===tiles[2].key && tiles[2].key===tiles[3].key){
+          return { kind:'kong', tiles, key:tiles[0].key };
+        }
+        return { kind:'unknown', tiles };
+      }
+
+      return { kind:'unknown', tiles };
+    }
+
+    function getParsed(){
+      return state.groups.map(g => ({ group:g, parsed:parseGroup(g) }));
+    }
+
+    function mainParsed(parsed){
+      return parsed.filter(x => x.group.type === 'main');
+    }
+
+    function flatTiles(parsed){
+      return parsed.flatMap(x => x.parsed.tiles);
+    }
+
+    function countSuitsHonors(parsed){
+      const tiles = flatTiles(parsed);
+      const suits = new Set();
+      let honorCount = 0, windCount = 0, dragonCount = 0;
+      tiles.forEach(t => {
+        if(isSuit(t)) suits.add(t.suit);
+        if(isHonor(t)){
+          honorCount++;
+          if(t.honorType === 'wind') windCount++;
+          if(t.honorType === 'dragon') dragonCount++;
+        }
+      });
+      return { tiles, suits, honorCount, windCount, dragonCount };
+    }
+
+    function chowCountsBySuit(parsed){
+      const map = { C:{}, D:{}, B:{} };
+      mainParsed(parsed).forEach(x => {
+        if(x.parsed.kind === 'chow'){
+          map[x.parsed.suit][x.parsed.start] = (map[x.parsed.suit][x.parsed.start] || 0) + 1;
+        }
+      });
+      return map;
+    }
+
+    function detectDragonWindHighPatterns(parsed){
+      const main = mainParsed(parsed);
+      const pair = parsed.find(x => x.group.type === 'pair');
+      const dragonPongs = new Set();
+      const windPongs = new Set();
+
+      main.forEach(x => {
+        if(x.parsed.kind === 'pong' || x.parsed.kind === 'kong'){
+          const t = x.parsed.tiles[0];
+          if(isHonor(t)){
+            if(t.honorType === 'dragon') dragonPongs.add(t.key);
+            if(t.honorType === 'wind') windPongs.add(t.key);
+          }
+        }
+      });
+
+      const pairKey = pair?.parsed?.kind === 'pair' ? pair.parsed.key : null;
+
+      const bigDragons = ['Wh','G','R'].every(k => dragonPongs.has(k));
+      const littleDragons = !bigDragons && dragonPongs.size === 2 && ['Wh','G','R'].includes(pairKey);
+      const bigWinds = ['E','S','W','N'].every(k => windPongs.has(k));
+      const littleWinds = !bigWinds && windPongs.size === 3 && ['E','S','W','N'].includes(pairKey);
+
+      const all = flatTiles(parsed);
+      const suitTiles = all.filter(isSuit);
+      const honorTiles = all.filter(isHonor);
+      const suitSet = new Set(suitTiles.map(t => t.suit));
+      const honorSet = new Set(honorTiles.map(t => t.key));
+
+      const jade = suitSet.size===1 && suitSet.has('B') && dragonPongs.has('G') && [...honorSet].every(k => k === 'G');
+      const ruby = suitSet.size===1 && suitSet.has('C') && dragonPongs.has('R') && [...honorSet].every(k => k === 'R');
+      const pearl = suitSet.size===1 && suitSet.has('D') && dragonPongs.has('Wh') && [...honorSet].every(k => k === 'Wh');
+
+      return {
+        bigDragons, littleDragons, bigWinds, littleWinds, jade, ruby, pearl,
+        bigDragonsTiles: bigDragons ? new Set(['Wh','G','R']) : new Set(),
+        littleDragonsTiles: littleDragons ? new Set(dragonPongs) : new Set(),
+        bigWindsTiles: bigWinds ? new Set(['E','S','W','N']) : new Set(),
+        littleWindsTiles: littleWinds ? new Set(windPongs) : new Set(),
+        jadeRubyPearlTiles: jade ? new Set(['G']) : ruby ? new Set(['R']) : pearl ? new Set(['Wh']) : new Set()
+      };
+    }
+
+    function detectSplitKongs(parsed){
+      const main = mainParsed(parsed);
+      const pongs = main.filter(x => x.parsed.kind === 'pong');
+      const chows = main.filter(x => x.parsed.kind === 'chow');
+      let count = 0;
+      pongs.forEach(p => {
+        const key = p.parsed.key;
+        if(chows.some(c => c.parsed.tiles.some(t => t.key === key))) count++;
+      });
+      return count;
+    }
+
+    function scoreFlowers(items){
+      for(let i=0;i<state.manual.flowerCount;i++){
+        addScore(items,'Flowers',1,'Flower selected from manual dropdown.','manual');
+      }
+    }
+
+    function scoreKongsAndHonorPongs(parsed, items){
+      const main = mainParsed(parsed);
+      const pongs = main.filter(x => x.parsed.kind === 'pong');
+      const kongs = main.filter(x => x.parsed.kind === 'kong');
+
+      if(kongs.length === 4){
+        addScore(items,'All Kongs',16,'All 4 main groups are kongs.','auto');
+        return;
+      }
+
+      kongs.forEach(k => {
+        if(k.group.concealedKong){
+          addScore(items,'Concealed Kong',2,'This kong is manually marked as concealed.','manual');
+        } else {
+          addScore(items,'Kong',1,'Four identical tiles in one group.','auto');
+        }
+      });
+
+      const hi = detectDragonWindHighPatterns(parsed);
+
+      pongs.forEach(p => {
+        const t = p.parsed.tiles[0];
+        if(!isHonor(t)) return;
+        const skip =
+          hi.bigDragonsTiles.has(t.key) ||
+          hi.littleDragonsTiles.has(t.key) ||
+          hi.bigWindsTiles.has(t.key) ||
+          hi.littleWindsTiles.has(t.key) ||
+          hi.jadeRubyPearlTiles.has(t.key);
+        if(!skip){
+          addScore(items,'Pong of Honor',1,`${t.name} pong.`,'auto');
+        }
+      });
+
+      const split = detectSplitKongs(parsed);
+      for(let i=0;i<split;i++){
+        addScore(items,'Split Kong',1,'Four same tiles are split between a pong and a chow.','auto');
+      }
+    }
+
+    function scoreConcealment(parsed, items){
+      const main = mainParsed(parsed);
+
+      if(main.every(x => x.group.inHand)){
+        addScore(items,'Clean Doorstep',1,'All 4 main groups are marked in hand.','auto');
+      }
+
+      if(parsed.every(x => !x.group.inHand)){
+        addScore(items,'All from Others',1,'All groups including the pair are marked not in hand.','auto');
+      }
+
+      const hiddenCount = main.filter(x => {
+        if(!x.group.inHand) return false;
+        return x.parsed.kind === 'pong' || (x.parsed.kind === 'kong' && x.group.concealedKong);
+      }).length;
+
+      if(hiddenCount >= 4){
+        addScore(items,'Four Hidden Pongs',12,'Four hidden pong-like groups in hand.','auto');
+      } else if(hiddenCount >= 3){
+        addScore(items,'Three Hidden Pongs',4,'Three hidden pong-like groups in hand.','auto');
+      }
+    }
+
+    function scoreLittleBigChowAndTrain(parsed, items){
+      const chowMap = chowCountsBySuit(parsed);
+      let anyTrain = false;
+
+      ['C','D','B'].forEach(suit => {
+        const c123 = chowMap[suit][1] || 0;
+        const c456 = chowMap[suit][4] || 0;
+        const c789 = chowMap[suit][7] || 0;
+
+        if(c123 >= 1 && c456 >= 1 && c789 >= 1){
+          anyTrain = true;
+          addScore(items,'1 through 9 Train',3,`123, 456, and 789 in ${suitName(suit)}.`,'auto');
+          if(c123 >= 2 || c456 >= 2 || c789 >= 2){
+            addScore(items,'Duplicate 1 through 9 Train',3,`Train duplicate by repeated segment in ${suitName(suit)}.`,'auto');
+          }
+        }
+      });
+
+      if(anyTrain) return;
+
+      ['C','D','B'].forEach(suit => {
+        const c123 = chowMap[suit][1] || 0;
+        const c789 = chowMap[suit][7] || 0;
+        const count = (c123 >= 1 && c789 >= 1) ? Math.max(c123, c789) : 0;
+        if(count >= 1){
+          addScore(items,'Little and Big Chow',1,`123 and 789 in ${suitName(suit)}.`,'auto');
+          for(let i=1;i<count;i++){
+            addScore(items,'Duplicate Little and Big Chow',1,`Additional repeated Little and Big Chow in ${suitName(suit)}.`,'auto');
+          }
+        }
+      });
+    }
+
+    function scoreConsecutivePongs(parsed, items){
+      const main = mainParsed(parsed).filter(x => x.parsed.kind === 'pong' || x.parsed.kind === 'kong');
+      const perSuit = { C:[], D:[], B:[] };
+
+      main.forEach(x => {
+        const t = x.parsed.tiles[0];
+        if(isSuit(t)) perSuit[t.suit].push(t.rank);
+      });
+
+      ['C','D','B'].forEach(suit => {
+        const ranks = [...new Set(perSuit[suit])].sort((a,b)=>a-b);
+        let found4 = false;
+        let found3 = false;
+        for(let i=0;i<ranks.length;i++){
+          if(ranks.includes(ranks[i]+1) && ranks.includes(ranks[i]+2) && ranks.includes(ranks[i]+3)) found4 = true;
+          if(ranks.includes(ranks[i]+1) && ranks.includes(ranks[i]+2)) found3 = true;
+        }
+        if(found4){
+          addScore(items,'Four Consecutive Pongs',8,`Four consecutive pong ranks in ${suitName(suit)}.`,'auto');
+        } else if(found3){
+          addScore(items,'Three Consecutive Pongs',4,`Three consecutive pong ranks in ${suitName(suit)}.`,'auto');
+        }
+      });
+    }
+
+    function scoreLittleBigPong(parsed, items){
+      const main = mainParsed(parsed).filter(x => x.parsed.kind === 'pong' || x.parsed.kind === 'kong');
+      const perSuit = { C:new Set(), D:new Set(), B:new Set() };
+      main.forEach(x => {
+        const t = x.parsed.tiles[0];
+        if(isSuit(t) && (t.rank===1 || t.rank===9)) perSuit[t.suit].add(t.rank);
+      });
+      ['C','D','B'].forEach(suit => {
+        if(perSuit[suit].has(1) && perSuit[suit].has(9)){
+          addScore(items,'Little and Big Pong',1,`1 and 9 pong/kong in ${suitName(suit)}.`,'auto');
+        }
+      });
+    }
+
+    function scoreShapePatterns(parsed, items){
+      const main = mainParsed(parsed);
+      const pair = parsed.find(x => x.group.type === 'pair');
+      const kinds = main.map(x => x.parsed.kind);
+
+      if(kinds.length===4 && kinds.every(k => k==='chow')){
+        addScore(items,'All Chow Hand',1,'All 4 main groups are chows.','auto');
+      }
+
+      if(kinds.length===4 && kinds.every(k => k==='pong' || k==='kong')){
+        if(!items.some(x => x.name === 'All Kongs')){
+          addScore(items,'All Pong Hand',4,'All 4 main groups are pong/kong.','auto');
+        }
+      }
+
+      if(pair && pair.parsed.kind === 'pair'){
+        const t = TILE_MAP[pair.parsed.key];
+        if(isSuit(t) && [2,5,8].includes(t.rank)){
+          addScore(items,'Two, Five, Eight Pair',1,'Pair is 2, 5, or 8.','auto');
+        }
+      }
+
+      const chowMap = chowCountsBySuit(parsed);
+      let doubleChowCount = 0;
+      ['C','D','B'].forEach(suit => {
+        for(let start=1;start<=7;start++){
+          const c = chowMap[suit][start] || 0;
+          if(c >= 2) doubleChowCount += Math.floor(c / 2);
+        }
+      });
+
+      if(doubleChowCount >= 2){
+        addScore(items,'Two Double Chows',12,'Two double chow structures detected.','auto');
+      } else if(doubleChowCount === 1){
+        addScore(items,'Double Chow',1,'A duplicated chow in the same suit detected.','auto');
+      }
+
+      scoreLittleBigChowAndTrain(parsed, items);
+      scoreConsecutivePongs(parsed, items);
+      scoreLittleBigPong(parsed, items);
+    }
+
+    function scoreMixedTerminalPatterns(parsed, items){
+      const main = mainParsed(parsed);
+      const pair = parsed.find(x => x.group.type === 'pair');
+
+      const semiMixed = (() => {
+        if(!pair || pair.parsed.kind !== 'pair') return false;
+        const pt = TILE_MAP[pair.parsed.key];
+        const pairOk = isHonor(pt) || (isSuit(pt) && [1,9].includes(pt.rank));
+        if(!pairOk) return false;
+
+        return main.every(x => {
+          if(x.parsed.kind === 'pong' || x.parsed.kind === 'kong'){
+            const t = x.parsed.tiles[0];
+            if(isHonor(t)) return true;
+            return isSuit(t) && [1,9].includes(t.rank);
+          }
+          if(x.parsed.kind === 'chow'){
+            return x.parsed.tiles.some(t => [1,9].includes(t.rank));
+          }
+          return false;
+        });
+      })();
+
+      if(semiMixed){
+        addScore(items,"Semi Mixed 1’s or 9’s",4,'All suit sets contain a 1 or 9, with Dragons/Winds allowed. Pair may be honors or 1’s/9’s.','auto');
+      }
+
+      const pureMixed = (() => {
+        if(!pair || pair.parsed.kind !== 'pair') return false;
+        const pt = TILE_MAP[pair.parsed.key];
+        if(!isSuit(pt) || ![1,9].includes(pt.rank)) return false;
+
+        return main.every(x => {
+          if(x.parsed.kind === 'pong' || x.parsed.kind === 'kong'){
+            const t = x.parsed.tiles[0];
+            return isSuit(t) && [1,9].includes(t.rank);
+          }
+          if(x.parsed.kind === 'chow'){
+            return x.parsed.tiles.every(isSuit) && x.parsed.tiles.some(t => [1,9].includes(t.rank));
+          }
+          return false;
+        });
+      })();
+
+      if(pureMixed){
+        addScore(items,"Pure Mixed 1’s or 9’s",8,'All suit sets contain a 1 or 9 with NO Dragons/Winds. Pair must be 1’s or 9’s.','auto');
+      }
+
+      const semiPongs = (() => {
+        if(!pair || pair.parsed.kind !== 'pair') return false;
+        const pt = TILE_MAP[pair.parsed.key];
+        if(!isHonor(pt)) return false;
+        return main.every(x => {
+          if(!(x.parsed.kind === 'pong' || x.parsed.kind === 'kong')) return false;
+          const t = x.parsed.tiles[0];
+          return isSuit(t) && [1,9].includes(t.rank);
+        });
+      })();
+
+      if(semiPongs){
+        addScore(items,"Semi 1’s or 9’s Pongs",12,'All sets are pongs of 1’s or 9’s, with Dragons/Winds.','auto');
+      }
+
+      const purePongs = (() => {
+        if(!pair || pair.parsed.kind !== 'pair') return false;
+        const pt = TILE_MAP[pair.parsed.key];
+        if(!isSuit(pt) || ![1,9].includes(pt.rank)) return false;
+        return main.every(x => {
+          if(!(x.parsed.kind === 'pong' || x.parsed.kind === 'kong')) return false;
+          const t = x.parsed.tiles[0];
+          return isSuit(t) && [1,9].includes(t.rank);
+        });
+      })();
+
+      if(purePongs){
+        addScore(items,"Pure 1’s or 9’s Pongs",16,'All sets are pongs of 1’s or 9’s with NO Dragons/Winds.','auto');
+      }
+    }
+
+    function scoreThreeSuitPatterns(parsed, items){
+      const main = mainParsed(parsed);
+      const chowSuits = new Set(main.filter(x => x.parsed.kind === 'chow').map(x => x.parsed.suit));
+      if(chowSuits.size === 3){
+        addScore(items,'Three Suit Chow',4,'Chows appear in all 3 suits.','auto');
+      }
+
+      const pongSuits = new Set(
+        main.filter(x => x.parsed.kind === 'pong' || x.parsed.kind === 'kong')
+            .map(x => x.parsed.tiles[0]).filter(isSuit).map(t => t.suit)
+      );
+      if(pongSuits.size === 3){
+        addScore(items,'Three Suit Pongs',4,'Pong/kong groups appear in all 3 suits.','auto');
+      }
+
+      const { suits, windCount, dragonCount } = countSuitsHonors(parsed);
+      if(suits.size===3 && windCount>0 && dragonCount>0){
+        addScore(items,'3 Suits w Wind and Dragon',1,'All 3 suits plus at least one wind and one dragon.','auto');
+      }
+    }
+
+    function scoreSuitPatterns(parsed, items){
+      const { tiles, suits, honorCount } = countSuitsHonors(parsed);
+
+      if(suits.size===2 && honorCount===0 && tiles.length){
+        addScore(items,'Missing a Suit',1,'Exactly two suits and no honors.','auto');
+      }
+
+      if(suits.size===1 && honorCount===0 && tiles.length){
+        addScore(items,'Pure Hand',8,'All one suit with NO Dragons/Winds.','auto');
+      }
+
+      if(suits.size===1 && honorCount>0 && tiles.length){
+        addScore(items,'Semi-Pure Hand',4,'All one suit, hand contains Dragons/Winds.','auto');
+      }
+
+      const noTerminals = tiles.length && tiles.every(t => isHonor(t) || (isSuit(t) && ![1,9].includes(t.rank)));
+      const hasHonors = tiles.some(isHonor);
+
+      if(noTerminals && hasHonors){
+        addScore(items,"No 1’s or 9’s with Honors",1,'No 1 or 9 among suit tiles, honors present.','auto');
+      }
+      if(noTerminals && !hasHonors && tiles.some(isSuit)){
+        addScore(items,"No 1’s or 9’s, with NO Honors",3,'No 1 or 9 and no honors.','auto');
+      }
+
+      if(state.manual.flowerCount === 0 && honorCount === 0 && tiles.length){
+        addScore(items,'No Flowers and No Honors',3,'No flowers selected and no honor tiles in hand.','auto');
+      }
+
+      scoreMixedTerminalPatterns(parsed, items);
+      scoreThreeSuitPatterns(parsed, items);
+    }
+
+    function scoreDragonWindPatterns(parsed, items){
+      const hi = detectDragonWindHighPatterns(parsed);
+
+      if(hi.jade) addScore(items,'Jade Dragon',12,'All Bams and Green Dragon pong only.','auto');
+      if(hi.ruby) addScore(items,'Ruby Dragon',12,'All Cracks and Red Dragon pong only.','auto');
+      if(hi.pearl) addScore(items,'Pearl Dragon',12,'All Dots and White Dragon pong only.','auto');
+
+      if(hi.bigDragons) addScore(items,'Big Dragons',12,'All 3 dragons are pong/kong groups.','auto');
+      else if(hi.littleDragons) addScore(items,'Little Dragons',8,'2 dragon pong/kongs and dragon pair.','auto');
+
+      if(hi.bigWinds) addScore(items,'Big Winds',16,'All 4 winds are pong/kong groups.','auto');
+      else if(hi.littleWinds) addScore(items,'Little Winds',12,'3 wind pong/kongs and wind pair.','auto');
+
+      const tiles = flatTiles(parsed);
+      if(tiles.length && tiles.every(isHonor)){
+        addScore(items,'All Honors',12,'All tiles are honors.','auto');
+      }
+    }
+
+    function scoreSpecialMode(items){
+      const sp = state.manual.specialPattern;
+      const warning = document.getElementById('specialWarning');
+      warning.classList.remove('show');
+      if(!sp) return false;
+      warning.classList.add('show');
+
+      if(sp === 'allPairs') addScore(items,'All Pairs',12,'Manual special hand pattern.','manual');
+      if(sp === 'thirteenOrphans') addScore(items,'Thirteen Orphans',16,'Manual special hand pattern.','manual');
+      if(sp === 'heavenlyGates') addScore(items,'Heavenly Gates',16,'Manual special hand pattern.','manual');
+      return true;
+    }
+
+    function applyManualEvents(items){
+      if(state.manual.selfPick) addScore(items,'Self-Pick',1,'Manual winning method.','manual');
+      if(state.manual.onlyOne) addScore(items,'Can Only Win with One',1,'Manual winning wait shape.','manual');
+      if(state.manual.flowerWall) addScore(items,'Win from the Flower Wall',1,'Manual event.','manual');
+      if(state.manual.stolenKong) addScore(items,'Stolen Kong',1,'Manual event.','manual');
+      if(state.manual.lastDiscard) addScore(items,'Win from the Last Discard',1,'Manual event.','manual');
+      if(state.manual.lastWallTile) addScore(items,'Win from the Last Wall Tile',1,'Manual event.','manual');
+      if(state.manual.twoKongMahjong) addScore(items,'2 Kong Mahjong',8,'Winning after 2 consecutive Kongs.','manual');
+      if(state.manual.prodigy) addScore(items,'Prodigy Hand',12,'Waiting on winning tile within the first 4 discards.','manual');
+      if(state.manual.earthly) addScore(items,'Earthly Hand',16,'Mahjong on the first discard.','manual');
+      if(state.manual.heavenly) addScore(items,'Heavenly Hand',24,'Self-draw a mahjong on your first turn.','manual');
+
+      if(state.manual.dealerRound >= 1){
+        const pts = 1 + 2 * (state.manual.dealerRound - 1);
+        addScore(items,'Dealer Bonus',pts,`Dealer round ${state.manual.dealerRound}.`,'manual');
+      }
+    }
+
+    function postProcess(items){
+      function has(name){ return items.some(x => x.name === name); }
+      function removeByName(name){
+        for(let i=items.length-1;i>=0;i--){
+          if(items[i].name === name) items.splice(i,1);
+        }
+      }
+
+      if(has('Clean Doorstep') && has('Self-Pick')){
+        removeByName('Clean Doorstep');
+        removeByName('Self-Pick');
+        addScore(items,'Clean Doorstep AND Self-Pick',3,'Replacement of Clean Doorstep + Self-Pick.','replacement');
+      }
+
+      if(has('Four Hidden Pongs') && has('Self-Pick')){
+        removeByName('Four Hidden Pongs');
+        removeByName('Self-Pick');
+        addScore(items,'Hidden Treasure',16,'Replacement of Four Hidden Pongs + Self-Pick.','replacement');
+      }
+
+      if(has('All Kongs')){
+        removeByName('Kong');
+        removeByName('Concealed Kong');
+        removeByName('All Pong Hand');
+      }
+
+      if(has('Four Consecutive Pongs')){
+        removeByName('Three Consecutive Pongs');
+      }
+
+      if(has('Two Double Chows')){
+        removeByName('Double Chow');
+      }
+
+      if(has('Jade Dragon') || has('Ruby Dragon') || has('Pearl Dragon')){
+        removeByName('Semi-Pure Hand');
+        removeByName('Pong of Honor');
+      }
+
+      if(has('Big Dragons') || has('Little Dragons')){
+        removeByName('Pong of Honor');
+      }
+
+      if(has('Big Winds') || has('Little Winds')){
+        removeByName('Pong of Honor');
+      }
+
+      if(has('1 through 9 Train') || has('Duplicate 1 through 9 Train')){
+        removeByName('Little and Big Chow');
+        removeByName('Duplicate Little and Big Chow');
+      }
+    }
+
+    function dedupeDescriptions(reason, desc){
+      if(!reason && !desc) return [];
+      if(reason && !desc) return [reason];
+      if(!reason && desc) return [desc];
+      const r = reason.trim();
+      const d = desc.trim();
+      if(r.toLowerCase() === d.toLowerCase()) return [r];
+      return r.length >= d.length ? [r] : [d];
+    }
+
+    function calculateScore(){
+      syncManualFromUI();
+      updatePatternDesc();
+
+      const parsed = getParsed();
+      const items = [];
+
+      const specialMode = scoreSpecialMode(items);
+
+      if(!specialMode){
+        scoreFlowers(items);
+        scoreKongsAndHonorPongs(parsed, items);
+        scoreConcealment(parsed, items);
+        scoreShapePatterns(parsed, items);
+        scoreSuitPatterns(parsed, items);
+        scoreDragonWindPatterns(parsed, items);
+      }
+
+      applyManualEvents(items);
+      postProcess(items);
+
+      const total = items.reduce((sum, x) => sum + x.points, 0);
+      renderScore(items, total);
+    }
+
+    function renderScore(items, total){
+      document.getElementById('totalScore').textContent = total;
+      const list = document.getElementById('scoreList');
+      list.innerHTML = '';
+
+      if(!items.length){
+        list.innerHTML = `<div class="empty">No scoring items yet.</div>`;
+        return;
+      }
+
+      items.forEach(item => {
+        const desc = DESC_MAP[item.name] || '';
+        const lines = dedupeDescriptions(item.reason, desc);
+        const el = document.createElement('div');
+        el.className = 'score-item';
+        el.innerHTML = `
+          <div class="score-main">
+            <span>${item.name}</span>
+            <span>+${item.points}</span>
+          </div>
+          ${lines.map(t => `<div class="subtle">${t}</div>`).join('')}
+          <div class="subtle">Source: ${item.source}</div>
+        `;
+        list.appendChild(el);
+      });
+    }
+
+    function dotPattern(rank){
+      const E = null, D = 'dot';
+      const map = {
+        1: [[E,E,E],[E,D,E],[E,E,E]],
+        2: [[D,E,E],[E,E,E],[E,E,D]],
+        3: [[D,E,E],[E,D,E],[E,E,D]],
+        4: [[D,E,D],[E,E,E],[D,E,D]],
+        5: [[D,E,D],[E,D,E],[D,E,D]],
+        6: [[D,E,D],[D,E,D],[D,E,D]],
+        7: [[D,E,E],[E,D,E],[E,E,D],[D,E,D],[D,E,D]],
+        8: [[D,E,D],[E,D,E],[D,E,D],[D,E,D]],
+        9: [[D,E,D],[D,E,D],[E,D,E],[D,E,D],[D,E,D]]
+      };
+      return map[rank];
+    }
+
+    function bamPattern(rank){
+      const E = null, B = 'bam';
+      const map = {
+        1: [[E,B,E]],
+        2: [[E,B,E],[E,B,E]],
+        3: [[E,B,E],[E,B,E],[E,B,E]],
+        4: [[B,E,B],[B,E,B]],
+        5: [[B,E,B],[E,B,E],[B,E,B]],
+        6: [[B,E,B],[B,E,B],[B,E,B]],
+        7: [[E,B,E],[B,B,B],[B,B,B]],
+        8: [[B,E,B],[E,B,E],[B,E,B],[B,E,B]],
+        9: [[B,B,B],[B,B,B],[B,B,B]]
+      };
+      return map[rank];
+    }
+
+    function renderTileFace(tile, mini=false){
+      const cls = mini ? 'mini' : '';
+
+      if(tile.category === 'honor'){
+        const color = tile.key === 'R' ? '#c62828' : tile.key === 'G' ? '#2e7d32' : '#111827';
+        return `
+          <div class="${cls}">
+            <div class="mahjong-face">
+              <div class="face-honor">
+                <div class="zh" style="color:${color}">${tile.zh}</div>
+                <div class="en">${tile.short}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if(tile.suit === 'C'){
+        return `
+          <div class="${cls}">
+            <div class="mahjong-face">
+              <div class="face-crack">
+                <div class="num">${tile.rank}</div>
+                <div class="wan">萬</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if(tile.suit === 'D'){
+        const rows = dotPattern(tile.rank);
+        let html = '';
+        rows.forEach(row => row.forEach(cell => {
+          html += cell ? `<div class="dot"></div>` : `<div></div>`;
+        }));
+        return `
+          <div class="${cls}">
+            <div class="mahjong-face">
+              <div class="face-dot">
+                <div class="symbol-grid">${html}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if(tile.suit === 'B'){
+        const rows = bamPattern(tile.rank);
+        let html = '';
+        rows.forEach(row => row.forEach(cell => {
+          html += cell ? `<div class="bam"></div>` : `<div></div>`;
+        }));
+        return `
+          <div class="${cls}">
+            <div class="mahjong-face">
+              <div class="face-bam">
+                <div class="symbol-grid">${html}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return '';
+    }
+
+    function renderTileSelection(){
+      const cracks = document.getElementById('cracksGrid');
+      const dots = document.getElementById('dotsGrid');
+      const bams = document.getElementById('bamsGrid');
+      const honors = document.getElementById('honorGrid');
+
+      cracks.innerHTML = '';
+      dots.innerHTML = '';
+      bams.innerHTML = '';
+      honors.innerHTML = '';
+
+      TILE_TYPES.forEach(tile => {
+        const btn = document.createElement('button');
+        btn.className = 'tile-btn' + (state.counts[tile.key] ? ' active' : '');
+        btn.innerHTML = `
+          <div class="tile-count">${state.counts[tile.key]}</div>
+          ${renderTileFace(tile, false)}
+        `;
+        btn.onclick = () => cycleTile(tile.key);
+
+        if(tile.category === 'honor') honors.appendChild(btn);
+        else if(tile.suit === 'C') cracks.appendChild(btn);
+        else if(tile.suit === 'D') dots.appendChild(btn);
+        else bams.appendChild(btn);
+      });
+    }
+
+    function canDropToGroup(targetGroupId, fromGroupId){
+      if(targetGroupId === fromGroupId) return true;
+      const target = state.groups[targetGroupId];
+      return target.tiles.length < target.size;
+    }
+
+    function renderGroups(){
+      const row = document.getElementById('groupsRow');
+      row.innerHTML = '';
+
+      state.groups.forEach((g, gi) => {
+        const isKongLike = g.tiles.length === 4 && allSame(g.tiles);
+
+        const card = document.createElement('div');
+        card.className = 'group-card';
+
+        const tileHtml = g.tiles.map((key, ti) => {
+          const tile = TILE_MAP[key];
+          return `
+            <div class="tile-wrap"
+                 draggable="true"
+                 data-group="${gi}"
+                 data-index="${ti}">
+              ${renderTileFace(tile, true)}
+              <button class="mini-remove" onclick="removeTile(${gi}, ${ti})">×</button>
+            </div>
+          `;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="group-top">
+            <strong>${g.label}</strong>
+            <span class="subtle">${g.type === 'pair' ? '2 tiles' : `${g.size} tiles`}</span>
+          </div>
+
+          <div class="slot" data-slot-group="${gi}">
+            ${tileHtml || `<span class="subtle">Empty</span>`}
+          </div>
+
+          <div class="group-controls">
+            ${g.type === 'main' ? `
+              <label class="line">
+                <span style="min-width:72px;">Group Size</span>
+                <select onchange="setGroupSize(${gi}, this.value)">
+                  <option value="3" ${g.size===3?'selected':''}>3 tiles</option>
+                  <option value="4" ${g.size===4?'selected':''}>4 tiles</option>
+                </select>
+              </label>
+            ` : ''}
+
+            <label class="line">
+              <input type="checkbox" ${g.inHand?'checked':''}
+                onchange="state.groups[${gi}].inHand=this.checked; renderAll();">
+              <span>In Hand</span>
+            </label>
+
+            ${isKongLike ? `
+              <label class="line">
+                <input type="checkbox" ${g.concealedKong?'checked':''}
+                  onchange="state.groups[${gi}].concealedKong=this.checked; renderAll();">
+                <span>Concealed Kong</span>
+              </label>
+            ` : ''}
+          </div>
+        `;
+        row.appendChild(card);
+      });
+
+      bindDragEvents();
+    }
+
+    function bindDragEvents(){
+      document.querySelectorAll('.tile-wrap').forEach(el => {
+        el.addEventListener('dragstart', e => {
+          dragState = {
+            fromGroup: Number(el.dataset.group),
+            fromIndex: Number(el.dataset.index)
+          };
+          el.classList.add('dragging');
+        });
+        el.addEventListener('dragend', e => {
+          el.classList.remove('dragging');
+          document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
+        });
+      });
+
+      document.querySelectorAll('.slot').forEach(slot => {
+        slot.addEventListener('dragover', e => {
+          e.preventDefault();
+          const targetGroup = Number(slot.dataset.slotGroup);
+          if(dragState && canDropToGroup(targetGroup, dragState.fromGroup)){
+            slot.classList.add('drag-over');
+          }
+        });
+
+        slot.addEventListener('dragleave', e => {
+          slot.classList.remove('drag-over');
+        });
+
+        slot.addEventListener('drop', e => {
+          e.preventDefault();
+          slot.classList.remove('drag-over');
+          if(!dragState) return;
+
+          const targetGroup = Number(slot.dataset.slotGroup);
+          if(!canDropToGroup(targetGroup, dragState.fromGroup)){
+            dragState = null;
+            return;
+          }
+
+          const fromG = state.groups[dragState.fromGroup];
+          const tile = fromG.tiles.splice(dragState.fromIndex, 1)[0];
+          state.groups[targetGroup].tiles.push(tile);
+
+          dragState = null;
+          recalcCountsFromGroups();
+          renderAll();
+        });
+      });
+    }
+
+    function renderAll(){
+      renderTileSelection();
+      renderGroups();
+      calculateScore();
+    }
+
+    document.getElementById('clearAllBtn').addEventListener('click', resetAll);
+    document.getElementById('recalcBtn').addEventListener('click', calculateScore);
+
+    [
+      'manualSelfPick','manualOnlyOne','manualFlowerWall','manualStolenKong',
+      'manualLastDiscard','manualLastWallTile','manual2KongMahjong','manualProdigy',
+      'manualEarthly','manualHeavenly','specialPattern','dealerRound','flowerCount'
+    ].forEach(id => {
+      document.getElementById(id).addEventListener('change', renderAll);
+    });
+
+    window.removeTile = removeTile;
+    window.setGroupSize = setGroupSize;
+    window.state = state;
+    window.renderAll = renderAll;
+
+    initSelects();
+    setManualUIFromState();
+    updatePatternDesc();
+    renderAll();
+  </script>
+</body>
+</html>
