@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Mahjong Scoring Page</title>
   <style>
     :root{
@@ -17,23 +14,27 @@
       --blue:#2563eb;
       --blue-soft:#eef4ff;
       --danger:#dc2626;
-      --warn:#b45309;
       --shadow:0 8px 24px rgba(0,0,0,.05);
     }
+
     *{box-sizing:border-box}
-    html,body{
+
+    html, body{
+      margin:0;
+      padding:0;
       touch-action:manipulation;
       overscroll-behavior:contain;
+      -webkit-text-size-adjust:100%;
     }
+
     body{
-      margin:0;
       font-family:Arial,Helvetica,sans-serif;
       background:var(--bg);
       color:var(--text);
-      -webkit-text-size-adjust:100%;
-      -webkit-user-select:none;
       user-select:none;
+      -webkit-user-select:none;
     }
+
     .page{
       max-width:1420px;
       margin:22px auto 40px;
@@ -42,6 +43,7 @@
       flex-direction:column;
       gap:16px;
     }
+
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -49,6 +51,7 @@
       box-shadow:var(--shadow);
       padding:16px;
     }
+
     .topbar,.section-head,.score-head{
       display:flex;
       justify-content:space-between;
@@ -56,15 +59,18 @@
       gap:12px;
       flex-wrap:wrap;
     }
+
     h1,h2,h3,h4,p{margin:0}
     h1{font-size:30px}
     h2{font-size:22px}
     h3{font-size:16px}
+
     .toolbar{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
     }
+
     .btn{
       border:1px solid var(--line);
       background:#fff;
@@ -75,34 +81,42 @@
       cursor:pointer;
       touch-action:manipulation;
     }
+
     .btn.primary{
       background:var(--blue);
       color:#fff;
       border-color:var(--blue);
     }
+
     .btn:hover{opacity:.95}
+
     .subtle{
       color:var(--muted);
       font-size:13px;
       line-height:1.45;
     }
 
+    /* Tile selection */
     .tile-section{
       display:grid;
       gap:18px;
     }
+
     .tile-group{
       display:grid;
       gap:10px;
     }
+
     .tile-grid{
       display:grid;
       grid-template-columns:repeat(9,minmax(68px,1fr));
       gap:10px;
     }
+
     .tile-grid.honor{
       grid-template-columns:repeat(7,minmax(68px,1fr));
     }
+
     .tile-btn{
       position:relative;
       min-height:96px;
@@ -117,17 +131,21 @@
       justify-content:center;
       cursor:pointer;
       transition:.12s ease;
+      padding:0;
       touch-action:manipulation;
     }
+
     .tile-btn:hover{
       transform:translateY(-1px);
       border-color:#9aa8bd;
     }
+
     .tile-btn.active{
       outline:2px solid #cfe0ff;
       border-color:#84aefc;
       background:linear-gradient(180deg,#ffffff 0%,#eef4ff 100%);
     }
+
     .tile-count{
       position:absolute;
       top:6px;
@@ -136,8 +154,10 @@
       font-weight:700;
       color:#4b5563;
       line-height:1;
+      z-index:2;
     }
 
+    /* tile face */
     .mahjong-face{
       width:54px;
       height:76px;
@@ -148,7 +168,9 @@
       align-items:center;
       justify-content:center;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+      overflow:hidden;
     }
+
     .mini .mahjong-face{
       width:48px;
       height:68px;
@@ -162,16 +184,19 @@
       gap:2px;
       line-height:1;
     }
+
     .face-crack .num{
       color:#c62828;
       font-size:20px;
       font-weight:700;
     }
+
     .face-crack .wan{
       color:#111827;
       font-size:18px;
       font-weight:700;
     }
+
     .mini .face-crack .num{font-size:17px}
     .mini .face-crack .wan{font-size:15px}
 
@@ -183,10 +208,12 @@
       gap:4px;
       line-height:1;
     }
+
     .face-honor .zh{
       font-size:28px;
       font-weight:700;
     }
+
     .face-honor .en{
       font-size:9px;
       color:#6b7280;
@@ -194,6 +221,7 @@
       text-transform:uppercase;
       letter-spacing:.4px;
     }
+
     .mini .face-honor .zh{font-size:23px}
 
     .face-dot,.face-bam{
@@ -204,6 +232,7 @@
       align-items:center;
       justify-content:center;
     }
+
     .symbol-grid{
       width:100%;
       height:100%;
@@ -213,22 +242,23 @@
       justify-items:center;
       align-items:center;
     }
-    .symbol-grid.cols-2{
+
+    .symbol-grid.special-8-dots{
       grid-template-columns:repeat(2,1fr);
+      grid-template-rows:repeat(4,1fr);
       gap:2px 8px;
     }
-    .symbol-grid.cols-4{
-      grid-template-columns:repeat(4,1fr);
-      gap:4px 3px;
-    }
-    .symbol-grid.rows-2{
-      grid-template-rows:repeat(2,1fr);
-    }
-    .symbol-grid.rows-3{
+
+    .symbol-grid.special-9-dots{
+      grid-template-columns:repeat(3,1fr);
       grid-template-rows:repeat(3,1fr);
+      gap:2px;
     }
-    .symbol-grid.rows-4{
-      grid-template-rows:repeat(4,1fr);
+
+    .symbol-grid.special-8-bams{
+      grid-template-columns:repeat(4,1fr);
+      grid-template-rows:repeat(2,1fr);
+      gap:4px 3px;
     }
 
     .dot{
@@ -238,6 +268,7 @@
       background:radial-gradient(circle at 35% 35%, #60a5fa 0%, #2563eb 45%, #1d4ed8 70%, #153eaa 100%);
       border:1px solid rgba(0,0,0,.06);
     }
+
     .mini .dot{
       width:10px;
       height:10px;
@@ -250,6 +281,7 @@
       background:linear-gradient(180deg,#2f9e44,#1b5e20);
       position:relative;
     }
+
     .bam::before,.bam::after{
       content:"";
       position:absolute;
@@ -260,16 +292,20 @@
       border-radius:3px;
       background:#34d399;
     }
+
     .bam::before{top:2px}
     .bam::after{bottom:2px}
+
     .mini .bam{
       width:5px;
       height:16px;
     }
+
     .mini .bam::before,.mini .bam::after{
       width:9px;
     }
 
+    /* Winning Hand */
     .groups-row{
       display:grid;
       grid-template-columns:repeat(5,minmax(220px,1fr));
@@ -277,6 +313,7 @@
       overflow-x:auto;
       padding-bottom:4px;
     }
+
     .group-card{
       border:1px solid var(--line);
       background:#fcfcfd;
@@ -286,6 +323,7 @@
       display:grid;
       gap:10px;
     }
+
     .group-top{
       display:flex;
       justify-content:space-between;
@@ -293,6 +331,7 @@
       gap:8px;
       flex-wrap:wrap;
     }
+
     .slot{
       min-height:108px;
       border:1px dashed #cbd5e1;
@@ -305,18 +344,21 @@
       align-items:flex-start;
       align-content:flex-start;
     }
+
     .slot.drag-over{
       background:var(--blue-soft);
       border-color:#7aa7ff;
     }
+
     .tile-wrap{
       position:relative;
       cursor:grab;
-      touch-action:manipulation;
     }
+
     .tile-wrap.dragging{
       opacity:.45;
     }
+
     .mini-remove{
       position:absolute;
       top:-6px;
@@ -331,19 +373,21 @@
       font-weight:700;
       cursor:pointer;
       z-index:2;
-      touch-action:manipulation;
     }
+
     .group-controls{
       display:grid;
       gap:8px;
       font-size:14px;
     }
+
     .line{
       display:flex;
       align-items:center;
       gap:8px;
       flex-wrap:wrap;
     }
+
     select{
       border:1px solid var(--line);
       background:#fff;
@@ -353,11 +397,13 @@
       color:var(--text);
     }
 
+    /* manual */
     .manual-grid{
       display:grid;
       grid-template-columns:repeat(3,minmax(260px,1fr));
       gap:14px;
     }
+
     .manual-box{
       border:1px solid var(--line);
       border-radius:14px;
@@ -366,11 +412,13 @@
       display:grid;
       gap:10px;
     }
+
     .check-list{
       display:grid;
       gap:10px;
       font-size:14px;
     }
+
     .desc{
       color:var(--muted);
       font-size:12px;
@@ -378,6 +426,7 @@
       margin-left:24px;
       margin-top:-2px;
     }
+
     .warning{
       display:none;
       margin-top:8px;
@@ -388,18 +437,22 @@
       border-radius:12px;
       font-size:14px;
     }
+
     .warning.show{display:block}
 
+    /* score */
     .total{
       font-size:34px;
       font-weight:800;
       color:var(--blue);
     }
+
     .score-list{
       display:grid;
       gap:10px;
       margin-top:10px;
     }
+
     .score-item{
       border:1px solid var(--line);
       border-radius:12px;
@@ -408,12 +461,14 @@
       display:grid;
       gap:5px;
     }
+
     .score-main{
       display:flex;
       justify-content:space-between;
       gap:12px;
       font-weight:700;
     }
+
     .empty{
       border:1px dashed var(--line);
       border-radius:12px;
@@ -427,120 +482,146 @@
       .tile-grid.honor{grid-template-columns:repeat(4,minmax(68px,1fr))}
       .manual-grid{grid-template-columns:1fr 1fr}
     }
+
+    /* iPad / tablet portrait compact style */
     @media (max-width:1024px){
       .page{
         margin:12px auto 20px;
-        gap:12px;
         padding:0 12px;
+        gap:12px;
       }
+
       .card{
         padding:12px;
         border-radius:14px;
       }
+
       h1{font-size:24px}
       h2{font-size:18px}
       h3{font-size:15px}
+
       .btn{
         padding:8px 12px;
-        border-radius:9px;
         font-size:13px;
+        border-radius:9px;
       }
-      .tile-section{
-        gap:12px;
-      }
-      .tile-group{
-        gap:6px;
-      }
+
+      .tile-section{gap:12px}
+      .tile-group{gap:6px}
+
       .tile-grid{
         gap:6px;
         grid-template-columns:repeat(9,minmax(52px,1fr));
       }
+
       .tile-grid.honor{
         grid-template-columns:repeat(7,minmax(52px,1fr));
       }
+
       .tile-btn{
         min-height:74px;
         border-radius:10px;
       }
+
       .tile-count{
         top:4px;
         right:6px;
         font-size:8px;
       }
+
       .mahjong-face{
         width:42px;
         height:60px;
       }
+
       .mini .mahjong-face{
         width:38px;
         height:54px;
       }
+
       .face-crack .num{font-size:16px}
       .face-crack .wan{font-size:14px}
       .mini .face-crack .num{font-size:14px}
       .mini .face-crack .wan{font-size:12px}
+
       .face-honor .zh{font-size:22px}
       .mini .face-honor .zh{font-size:18px}
       .face-honor .en{font-size:8px}
+
       .dot{
         width:9px;
         height:9px;
       }
+
       .mini .dot{
         width:8px;
         height:8px;
       }
+
       .bam{
         width:5px;
         height:14px;
       }
+
       .bam::before,.bam::after{
         width:8px;
         height:2px;
       }
+
       .mini .bam{
         width:4px;
         height:12px;
       }
+
       .mini .bam::before,.mini .bam::after{
         width:7px;
       }
+
       .groups-row{
         gap:10px;
       }
+
       .group-card{
         min-width:200px;
         padding:10px;
         gap:8px;
       }
+
       .slot{
         min-height:84px;
         padding:6px;
         gap:6px;
       }
+
       .group-controls{
         gap:6px;
         font-size:13px;
       }
+
       .manual-grid{
         grid-template-columns:repeat(3,minmax(220px,1fr));
         gap:10px;
       }
+
       .manual-box{
         padding:12px;
         gap:8px;
       }
+
       .check-list{
         gap:8px;
         font-size:13px;
       }
+
       .desc{
         font-size:11px;
       }
+
       .total{
         font-size:28px;
       }
     }
+
     @media (max-width:860px){
       .tile-grid{grid-template-columns:repeat(4,minmax(68px,1fr))}
       .tile-grid.honor{grid-template-columns:repeat(4,minmax(68px,1fr))}
@@ -781,17 +862,6 @@
       }
     }
 
-    function setManualSpecialPattern(pattern){
-      state.manual.specialPattern = pattern;
-      const allPairs = document.getElementById('manualAllPairs');
-      const orphans = document.getElementById('manualThirteenOrphans');
-      const gates = document.getElementById('manualHeavenlyGates');
-
-      allPairs.checked = pattern === 'allPairs';
-      orphans.checked = pattern === 'thirteenOrphans';
-      gates.checked = pattern === 'heavenlyGates';
-    }
-
     function setManualUIFromState(){
       document.getElementById('manualSelfPick').checked = state.manual.selfPick;
       document.getElementById('manualOnlyOne').checked = state.manual.onlyOne;
@@ -805,7 +875,10 @@
       document.getElementById('manualHeavenly').checked = state.manual.heavenly;
       document.getElementById('dealerRound').value = String(state.manual.dealerRound);
       document.getElementById('flowerCount').value = String(state.manual.flowerCount);
-      setManualSpecialPattern(state.manual.specialPattern);
+
+      document.getElementById('manualAllPairs').checked = state.manual.specialPattern === 'allPairs';
+      document.getElementById('manualThirteenOrphans').checked = state.manual.specialPattern === 'thirteenOrphans';
+      document.getElementById('manualHeavenlyGates').checked = state.manual.specialPattern === 'heavenlyGates';
     }
 
     function syncManualFromUI(){
@@ -827,8 +900,6 @@
       else if(document.getElementById('manualHeavenlyGates').checked) state.manual.specialPattern = 'heavenlyGates';
       else state.manual.specialPattern = '';
     }
-
-    function updatePatternDesc(){}
 
     function recalcCountsFromGroups(){
       state.counts = Object.fromEntries(TILE_TYPES.map(t => [t.key, 0]));
@@ -1061,12 +1132,14 @@
       [...pongs, ...kongs].forEach(p => {
         const t = p.parsed.tiles[0];
         if(!isHonor(t)) return;
+
         const skip =
           hi.bigDragonsTiles.has(t.key) ||
           hi.littleDragonsTiles.has(t.key) ||
           hi.bigWindsTiles.has(t.key) ||
           hi.littleWindsTiles.has(t.key) ||
           hi.jadeRubyPearlTiles.has(t.key);
+
         if(!skip){
           addScore(items,'Pong of Honor',1,`${t.name} ${p.parsed.kind}.`,'auto');
         }
@@ -1307,6 +1380,7 @@
           break;
         }
       }
+
       if(hasThreeSuitSameChow){
         addScore(items,'Three Suit Chow',4,'The same chow sequence appears in all 3 suits.','auto');
       }
@@ -1523,49 +1597,22 @@
       });
     }
 
-    function dotPattern(rank){
-      const E = null, D = 'dot';
-      const map = {
-        1: { layout:'grid3', rows:[[E,E,E],[E,D,E],[E,E,E]] },
-        2: { layout:'grid3', rows:[[D,E,E],[E,E,E],[E,E,D]] },
-        3: { layout:'grid3', rows:[[D,E,E],[E,D,E],[E,E,D]] },
-        4: { layout:'grid3', rows:[[D,E,D],[E,E,E],[D,E,D]] },
-        5: { layout:'grid3', rows:[[D,E,D],[E,D,E],[D,E,D]] },
-        6: { layout:'grid3', rows:[[D,E,D],[D,E,D],[D,E,D]] },
-        7: { layout:'grid3', rows:[[D,E,E],[E,D,E],[E,E,D],[D,E,D],[D,E,D]] },
-        8: { layout:'cols2rows4', count:8 },
-        9: { layout:'cols3rows3', count:9 }
-      };
-      return map[rank];
+    function renderGridFromRows(rows, symbolClass){
+      let html = '';
+      rows.forEach(row => {
+        row.forEach(cell => {
+          html += cell ? `<div class="${symbolClass}"></div>` : `<div></div>`;
+        });
+      });
+      return `<div class="symbol-grid">${html}</div>`;
     }
 
-    function bamPattern(rank){
-      const E = null, B = 'bam';
-      const map = {
-        1: { layout:'grid3', rows:[[E,B,E]] },
-        2: { layout:'grid3', rows:[[E,B,E],[E,B,E]] },
-        3: { layout:'grid3', rows:[[E,B,E],[E,B,E],[E,B,E]] },
-        4: { layout:'grid3', rows:[[B,E,B],[B,E,B]] },
-        5: { layout:'grid3', rows:[[B,E,B],[E,B,E],[B,E,B]] },
-        6: { layout:'grid3', rows:[[B,E,B],[B,E,B],[B,E,B]] },
-        7: { layout:'grid3', rows:[[E,B,E],[B,B,B],[B,B,B]] },
-        8: { layout:'cols4rows2', count:8 },
-        9: { layout:'grid3', rows:[[B,B,B],[B,B,B],[B,B,B]] }
-      };
-      return map[rank];
-    }
-
-    function renderSpecialSymbolLayout(type, layout, count){
-      let cls = 'symbol-grid';
-      if(layout === 'cols2rows4') cls += ' cols-2 rows-4';
-      if(layout === 'cols3rows3') cls += ' rows-3';
-      if(layout === 'cols4rows2') cls += ' cols-4 rows-2';
-
+    function renderSpecialFilledGrid(className, count, symbolClass){
       let html = '';
       for(let i=0;i<count;i++){
-        html += type === 'dot' ? `<div class="dot"></div>` : `<div class="bam"></div>`;
+        html += `<div class="${symbolClass}"></div>`;
       }
-      return `<div class="${cls}">${html}</div>`;
+      return `<div class="symbol-grid ${className}">${html}</div>`;
     }
 
     function renderTileFace(tile, mini=false){
@@ -1599,44 +1646,59 @@
       }
 
       if(tile.suit === 'D'){
-        const pattern = dotPattern(tile.rank);
         let inner = '';
-        if(pattern.layout === 'grid3'){
-          pattern.rows.forEach(row => row.forEach(cell => {
-            inner += cell ? `<div class="dot"></div>` : `<div></div>`;
-          }));
-          inner = `<div class="symbol-grid">${inner}</div>`;
-        } else {
-          inner = renderSpecialSymbolLayout('dot', pattern.layout, pattern.count);
+        const E = null, D = 1;
+        const map = {
+          1: [[E,E,E],[E,D,E],[E,E,E]],
+          2: [[D,E,E],[E,E,E],[E,E,D]],
+          3: [[D,E,E],[E,D,E],[E,E,D]],
+          4: [[D,E,D],[E,E,E],[D,E,D]],
+          5: [[D,E,D],[E,D,E],[D,E,D]],
+          6: [[D,E,D],[D,E,D],[D,E,D]],
+          7: [[D,E,E],[E,D,E],[E,E,D],[D,E,D],[D,E,D]]
+        };
+
+        if(tile.rank <= 7){
+          inner = renderGridFromRows(map[tile.rank], 'dot');
+        } else if(tile.rank === 8){
+          inner = renderSpecialFilledGrid('special-8-dots', 8, 'dot');
+        } else if(tile.rank === 9){
+          inner = renderSpecialFilledGrid('special-9-dots', 9, 'dot');
         }
+
         return `
           <div class="${cls}">
             <div class="mahjong-face">
-              <div class="face-dot">
-                ${inner}
-              </div>
+              <div class="face-dot">${inner}</div>
             </div>
           </div>
         `;
       }
 
       if(tile.suit === 'B'){
-        const pattern = bamPattern(tile.rank);
         let inner = '';
-        if(pattern.layout === 'grid3'){
-          pattern.rows.forEach(row => row.forEach(cell => {
-            inner += cell ? `<div class="bam"></div>` : `<div></div>`;
-          }));
-          inner = `<div class="symbol-grid">${inner}</div>`;
+        const E = null, B = 1;
+        const map = {
+          1: [[E,B,E]],
+          2: [[E,B,E],[E,B,E]],
+          3: [[E,B,E],[E,B,E],[E,B,E]],
+          4: [[B,E,B],[B,E,B]],
+          5: [[B,E,B],[E,B,E],[B,E,B]],
+          6: [[B,E,B],[B,E,B],[B,E,B]],
+          7: [[E,B,E],[B,B,B],[B,B,B]],
+          9: [[B,B,B],[B,B,B],[B,B,B]]
+        };
+
+        if(tile.rank !== 8){
+          inner = renderGridFromRows(map[tile.rank], 'bam');
         } else {
-          inner = renderSpecialSymbolLayout('bam', pattern.layout, pattern.count);
+          inner = renderSpecialFilledGrid('special-8-bams', 8, 'bam');
         }
+
         return `
           <div class="${cls}">
             <div class="mahjong-face">
-              <div class="face-bam">
-                ${inner}
-              </div>
+              <div class="face-bam">${inner}</div>
             </div>
           </div>
         `;
@@ -1658,6 +1720,7 @@
 
       TILE_TYPES.forEach(tile => {
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.className = 'tile-btn' + (state.counts[tile.key] ? ' active' : '');
         btn.innerHTML = `
           <div class="tile-count">${state.counts[tile.key]}</div>
@@ -1691,12 +1754,9 @@
         const tileHtml = g.tiles.map((key, ti) => {
           const tile = TILE_MAP[key];
           return `
-            <div class="tile-wrap"
-                 draggable="true"
-                 data-group="${gi}"
-                 data-index="${ti}">
+            <div class="tile-wrap" draggable="true" data-group="${gi}" data-index="${ti}">
               ${renderTileFace(tile, true)}
-              <button class="mini-remove" onclick="removeTile(${gi}, ${ti})">×</button>
+              <button type="button" class="mini-remove" onclick="removeTile(${gi}, ${ti})">×</button>
             </div>
           `;
         }).join('');
@@ -1745,14 +1805,15 @@
 
     function bindDragEvents(){
       document.querySelectorAll('.tile-wrap').forEach(el => {
-        el.addEventListener('dragstart', e => {
+        el.addEventListener('dragstart', () => {
           dragState = {
             fromGroup: Number(el.dataset.group),
             fromIndex: Number(el.dataset.index)
           };
           el.classList.add('dragging');
         });
-        el.addEventListener('dragend', e => {
+
+        el.addEventListener('dragend', () => {
           el.classList.remove('dragging');
           document.querySelectorAll('.slot').forEach(s => s.classList.remove('drag-over'));
         });
@@ -1767,7 +1828,7 @@
           }
         });
 
-        slot.addEventListener('dragleave', e => {
+        slot.addEventListener('dragleave', () => {
           slot.classList.remove('drag-over');
         });
 
@@ -1800,12 +1861,7 @@
     }
 
     function bindSpecialPatternMutualExclusion(){
-      const ids = [
-        'manualAllPairs',
-        'manualThirteenOrphans',
-        'manualHeavenlyGates'
-      ];
-
+      const ids = ['manualAllPairs','manualThirteenOrphans','manualHeavenlyGates'];
       ids.forEach(id => {
         document.getElementById(id).addEventListener('change', e => {
           if(e.target.checked){
@@ -1837,6 +1893,3 @@
 
     document.getElementById('clearAllBtn').addEventListener('click', resetAll);
     document.getElementById('recalcBtn').addEventListener('click', calculateScore);
-
-    [
-      'manual
